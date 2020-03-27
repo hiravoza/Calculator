@@ -1,5 +1,6 @@
 package com.rewards.calculator.controller;
 
+import java.time.Period;
 import java.util.Date;
 
 import javax.validation.constraints.Pattern;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rewards.calculator.model.ResponseEntity;
 import com.rewards.calculator.model.Rewards;
 import com.rewards.calculator.service.CalculatorService;
 
@@ -20,7 +22,7 @@ public class CalculatorController {
 	private CalculatorService calculatorService;
 	
 	@GetMapping(value = "/calculateReward")
-    public Rewards getEvents(
+    public ResponseEntity getEvents(
     		@RequestParam(required = true) 
     			int userId,
     			
@@ -38,9 +40,13 @@ public class CalculatorController {
             
     ) {
 		
-		if(toDate.getMonth() - fromDate.getMonth() != 3) {
-			return null;
+		int diff = calculatorService.getMonthsDifference(fromDate, toDate);
+		if(diff > 3) {
+			return new ResponseEntity(422, "Gap can't be more than 3 months", null);
+		} else if(diff < 0) {
+			return new ResponseEntity(422, "To date needs to be greater than from date", null);
 		}
+		
 		
 		toDate.setMonth(toDate.getMonth() + 1);
 		toDate.setDate(toDate.getDate() - 1);

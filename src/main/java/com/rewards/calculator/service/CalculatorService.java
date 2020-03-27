@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.rewards.calculator.model.ResponseEntity;
 import com.rewards.calculator.model.Rewards;
 import com.rewards.calculator.model.Transactions;
 import com.rewards.calculator.repository.TransactionRepository;
@@ -18,7 +19,7 @@ public class CalculatorService {
 	@Autowired
 	private TransactionRepository transactionRepository;
 	
-	public Rewards calculate(int userId, Date fromDate, Date toDate) {
+	public ResponseEntity calculate(int userId, Date fromDate, Date toDate) {
 		
 		List<Transactions> transactions =  transactionRepository.getTransactions(userId, fromDate, toDate);
 		
@@ -37,10 +38,10 @@ public class CalculatorService {
 				continue;
 			}
 			
-			if(monthlyRewards.get(trans.getDate().getMonth()) == null) {
-				monthlyRewards.put(trans.getDate().getMonth(), sub);
+			if(monthlyRewards.get(trans.getDate().getMonth()+1) == null) {
+				monthlyRewards.put(trans.getDate().getMonth() + 1, sub);
 			} else {
-				monthlyRewards.put(trans.getDate().getMonth(), monthlyRewards.get(trans.getDate().getMonth()) + sub);
+				monthlyRewards.put(trans.getDate().getMonth(), monthlyRewards.get(trans.getDate().getMonth() + 1) + sub);
 			}
 			totalRewards +=  sub;
 		}
@@ -48,7 +49,13 @@ public class CalculatorService {
 		rewards.setMonthtlyRewards(monthlyRewards);
 		rewards.setTotalRewardPoints(totalRewards);
 		
-		return rewards;
+		return new ResponseEntity(200, "SUCCESS", rewards);
+	}
+	
+	public static final int getMonthsDifference(Date date1, Date date2) {
+	    int m1 = date1.getYear() * 12 + date1.getMonth();
+	    int m2 = date2.getYear() * 12 + date2.getMonth();
+	    return m2 - m1 + 1;
 	}
 
 }
